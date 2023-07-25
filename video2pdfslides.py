@@ -6,10 +6,12 @@ import shutil
 import img2pdf
 import glob
 import argparse
+from pytube import YouTube
 
 ############# Define constants
 
 OUTPUT_SLIDES_DIR = f"./output"
+DOWNLOAD_FOLDER = f"./input"
 
 FRAME_RATE = 3                   # no.of frames per second that needs to be processed, fewer the count faster the speed
 WARMUP = FRAME_RATE              # initial number of frames to be skipped
@@ -18,6 +20,23 @@ VAR_THRESHOLD = 16               # Threshold on the squared Mahalanobis distance
 DETECT_SHADOWS = False            # If true, the algorithm will detect shadows and mark them.
 MIN_PERCENT = 0.1                # min % of diff between foreground and background to detect if motion has stopped
 MAX_PERCENT = 3                  # max % of diff between foreground and background to detect if frame is still in motion
+
+
+
+
+def get_youtube_video(youtube_video_path):
+    """A function to download a youtube video of joice"""
+    yt = YouTube(youtube_video_path)
+
+    video_title = yt.title
+
+    video_title = "".join([c if c.isalnum() else "_" for c in video_title])
+
+    stream = yt.streams.get_highest_resolution() # get the highest resolution stream available
+
+    stream.download(DOWNLOAD_FOLDER) # download the video
+
+    return os.path.join(DOWNLOAD_FOLDER, video_title + ".mp4")
 
 
 def get_frames(video_path):
@@ -138,12 +157,18 @@ if __name__ == "__main__":
 #     output_folder_screenshot_path = initialize_output_folder(video_path)
     
     
-    parser = argparse.ArgumentParser("video_path")
-    parser.add_argument("video_path", help="path of video to be converted to pdf slides", type=str)
+    parser = argparse.ArgumentParser("youtube_path")
+    # parser.add_argument("video_path", help="path of video to be converted to pdf slides", type=str)
+    parser.add_argument("youtube_path" ,help="path of youtube video to be downloaded", type=str)
     args = parser.parse_args()
-    video_path = args.video_path
+    #video_path = args.video_path
+    youtube_path = args.youtube_path
 
-    print('video_path', video_path)
+    #print('video_path', video_path)
+    print("youtube_path", youtube_path)
+
+    video_path = get_youtube_video(youtube_path)
+
     output_folder_screenshot_path = initialize_output_folder(video_path)
     detect_unique_screenshots(video_path, output_folder_screenshot_path)
 
